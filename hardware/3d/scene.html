@@ -1,0 +1,162 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;background:#fff;font-family:Arial,Helvetica,sans-serif}
+  #wrap{position:relative;width:1600px;height:1000px;overflow:hidden}
+  .lbl{background:rgba(255,255,255,.94);border:1.5px solid #2e7d32;border-radius:8px;padding:5px 10px;font-size:19px;color:#12301a;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .lbl b{color:#1b5e20}
+  .lbl small{display:block;font-size:14px;color:#51605a}
+  #title{position:absolute;left:20px;top:16px;padding:6px 12px 0;background:rgba(247,250,246,.9);border-radius:8px 8px 0 0;font-size:30px;font-weight:bold;color:#12301a}
+  #sub{position:absolute;left:20px;top:58px;padding:2px 12px 8px;background:rgba(247,250,246,.9);border-radius:0 0 8px 8px;font-size:19px;color:#51605a}
+  #scale{position:absolute;right:32px;bottom:26px;font-size:17px;color:#51605a}
+</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="wrap"><div id="title"></div><div id="sub"></div><div id="scale"></div></div>
+<script type="module">
+import * as THREE from 'three'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js'
+import { buildProbe, buildSoilProbe, buildBody, buildWand, screenTexture, C } from './model.js'
+
+const view = new URLSearchParams(location.search).get('view') || 'hero'
+const W = 1600, H = 1000
+const wrap = document.getElementById('wrap')
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+renderer.setSize(W, H); renderer.setPixelRatio(1)
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05
+renderer.outputColorSpace = THREE.SRGBColorSpace
+wrap.prepend(renderer.domElement)
+const css = new CSS2DRenderer(); css.setSize(W, H); css.domElement.style.position = 'absolute'; css.domElement.style.top = '0'; wrap.appendChild(css.domElement)
+
+const scene = new THREE.Scene()
+const pmrem = new THREE.PMREMGenerator(renderer)
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+const bgc = document.createElement('canvas'); bgc.width = 2; bgc.height = 256
+const bg = bgc.getContext('2d'); const grd = bg.createLinearGradient(0, 0, 0, 256); grd.addColorStop(0, '#f7faf6'); grd.addColorStop(1, '#dfe9dd'); bg.fillStyle = grd; bg.fillRect(0, 0, 2, 256)
+const bgt = new THREE.CanvasTexture(bgc); bgt.colorSpace = THREE.SRGBColorSpace; scene.background = bgt
+
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(30, 60, 40); sun.castShadow = true
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -80, right: 80, top: 80, bottom: -80, near: 1, far: 250 })
+scene.add(sun); scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb49c, 0.6))
+
+const camera = new THREE.PerspectiveCamera(32, W / H, 0.5, 2000)
+const shadowAll = o => o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true } })
+function label(html, pos, dx = 0, dy = 0, target = scene) {
+  const d = document.createElement('div'); d.className = 'lbl'; d.innerHTML = html
+  d.style.transform = `translate(${dx}px, ${dy}px)`
+  const o = new CSS2DObject(d); o.position.copy(pos); target.add(o); return o
+}
+function leader(a, b) {
+  const geo = new THREE.BufferGeometry().setFromPoints([a, b])
+  scene.add(new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x2e7d32 })))
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8), new THREE.MeshBasicMaterial({ color: 0x2e7d32 })); dot.position.copy(a); scene.add(dot)
+}
+const T = (t, s, sc = '') => { document.getElementById('title').textContent = t; document.getElementById('sub').textContent = s; document.getElementById('scale').textContent = sc }
+const floor = (y = -3, col = 0xe4ece2) => { const f = new THREE.Mesh(new THREE.CircleGeometry(160, 64), new THREE.ShadowMaterial({ opacity: 0.18 })); f.rotation.x = -Math.PI / 2; f.position.y = y; f.receiveShadow = true; scene.add(f) }
+
+if (view === 'hero') {
+  T('GanoProbe — rancangan prototipe', 'Alat genggam pengukur senyawa volatil pangkal batang (render 3D)', 'Panjang total ± 49 cm · bodi 14 × 8,4 × 4,6 cm · berat target < 900 g')
+  const p = buildProbe(); shadowAll(p); p.position.set(-14, 0, 0); scene.add(p)
+  const sp = buildSoilProbe(new THREE.Vector3(-4, 10.5, -7)); sp.position.set(-18, -1.5, 14); sp.rotation.set(0, 0, Math.PI / 2); shadowAll(sp)
+  scene.add(sp)
+  floor(-2.4)
+  camera.position.set(-2, 52, 98); camera.lookAt(3, -3, 3)
+  const L = (html, at, to) => { leader(at, to); label(html, to) }
+  L('<b>Layar OLED</b><small>kode pohon & hasil AI</small>', new THREE.Vector3(-15.6, 2.4, 0), new THREE.Vector3(-30, 11, -2))
+  L('<b>Tombol ukur</b>', new THREE.Vector3(-10.1, 2.7, 0.4), new THREE.Vector3(-8, 11, 13))
+  L('<b>Antena GPS</b>', new THREE.Vector3(-19.3, 3.1, -2.2), new THREE.Vector3(-22, 12, -14))
+  L('<b>Pegangan karet</b>', new THREE.Vector3(-0.9, 1.8, 0), new THREE.Vector3(2, 9, 12))
+  L('<b>Ruang sensor</b><small>MQ-138 · MQ-135 · TGS2602 · SHT31 · kipas</small>', new THREE.Vector3(17.1, 2.6, 0), new THREE.Vector3(16, 14, -4))
+  L('<b>Sungkup + gasket karet</b><small>menempel rapat ke pangkal batang</small>', new THREE.Vector3(27.7, 5, 0), new THREE.Vector3(34, 13, 10))
+  L('<b>Probe tanah</b><small>kelembapan + suhu tanah</small>', new THREE.Vector3(-24, -1, 14), new THREE.Vector3(-30, 2, 26))
+}
+
+if (view === 'exploded') {
+  T('Tampilan terurai (exploded view)', 'Susunan komponen elektronik di dalam GanoProbe', '')
+  const p = buildProbe({ explode: 1, screen: null }); shadowAll(p); p.position.set(-16, 0, 0); scene.add(p)
+  p.updateMatrixWorld(true)
+  floor(-11)
+  camera.position.set(-2, 50, 92); camera.lookAt(2, -2, 2)
+  const W = n => { const v = new THREE.Vector3(); p.getObjectByName(n).getWorldPosition(v); return v }
+  const L = (html, n, off, dy = 0) => { const a = W(n); a.y += dy; const b = a.clone().add(off); leader(a, b); label(html, b) }
+  L('<b>Cangkang atas</b> + layar OLED + tombol', 'cangkang_atas', new THREE.Vector3(-10, 9, -6), 1.2)
+  L('<b>ESP32</b> (otak + WiFi)', 'esp32', new THREE.Vector3(-14, 4, 10), 0.3)
+  L('<b>ADS1115</b> ADC 16-bit', 'ads1115', new THREE.Vector3(4, 12, -10))
+  L('<b>microSD</b> log & antrean luring', 'microsd', new THREE.Vector3(10, 9, 8))
+  L('<b>2 × baterai 18650</b> + BMS', 'baterai1', new THREE.Vector3(-12, -8, 12))
+  L('<b>MQ-138</b> aromatik/aldehida', 'MQ-138', new THREE.Vector3(-10, -9, 12), 1)
+  L('<b>MQ-135</b> amonia (NH₃)', 'MQ-135', new THREE.Vector3(1, -13, 13), 1)
+  L('<b>TGS2602</b> VOC dekomposisi', 'TGS2602', new THREE.Vector3(12, -10, 12), 0.8)
+  L('<b>Kipas</b> penarik udara', 'kipas', new THREE.Vector3(12, -2, -12))
+  L('<b>Sungkup</b> + gasket karet', 'gasket', new THREE.Vector3(2, 12, -4), 5)
+  L('<b>Ruang sensor</b> (dibuka)', 'ruang_sensor', new THREE.Vector3(-4, 12, -8), 2.6)
+}
+
+if (view === 'inuse') {
+  T('Cara pakai di lapangan', 'Sungkup ditempel di pangkal batang (10–30 cm dari tanah), probe tanah ditancapkan di piringan', '')
+  scene.background = bgt
+  const soil = new THREE.Mesh(new THREE.CircleGeometry(220, 80), new THREE.MeshStandardMaterial({ color: 0x4e3a28, roughness: 1 }))
+  soil.rotation.x = -Math.PI / 2; soil.receiveShadow = true; scene.add(soil)
+  // batang sawit
+  const trunk = new THREE.Group()
+  const tr = new THREE.Mesh(new THREE.CylinderGeometry(24, 27, 170, 48), new THREE.MeshStandardMaterial({ color: 0x6d5a45, roughness: 0.95 }))
+  tr.position.y = 85; trunk.add(tr)
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(27, 36, 14, 48), new THREE.MeshStandardMaterial({ color: 0x5e4c3a, roughness: 1 })); base.position.y = 7; trunk.add(base)
+  for (let i = 0; i < 140; i++) { // pangkal pelepah (bonggol)
+    const y = 45 + i * 0.95, a = i * 2.4
+    const stub = new THREE.Mesh(new THREE.BoxGeometry(9, 5, 14), new THREE.MeshStandardMaterial({ color: i % 2 ? 0x7b6750 : 0x6a5842, roughness: 1 }))
+    stub.position.set(Math.cos(a) * 25, y, Math.sin(a) * 25); stub.rotation.y = -a; stub.rotation.z = 0.5; trunk.add(stub)
+  }
+  // tubuh buah Ganoderma (basidiokarp) di sisi belakang
+  const fb = new THREE.Mesh(new THREE.SphereGeometry(7, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x7a3b16, roughness: 0.6 }))
+  fb.scale.set(1, 0.35, 0.8); fb.position.set(-4, 16, 27); fb.rotation.x = -0.35; trunk.add(fb)
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(6.8, 0.8, 8, 40), new THREE.MeshStandardMaterial({ color: 0xf1ead8 })); rim.rotation.x = Math.PI / 2 - 0.35; rim.scale.set(1, 0.8, 1); rim.position.set(-4, 16, 27); trunk.add(rim)
+  shadowAll(trunk); scene.add(trunk)
+  // probe: sungkup menghadap batang (sumbu +X probe ke arah -X dunia)
+  const p = buildProbe({ screen: screenTexture(['GanoProbe', 'B1-05-04', 'UKUR 1:42']) }); shadowAll(p)
+  p.rotation.y = Math.PI; p.rotation.z = 0.22
+  // posisi: gasket (x=41.7 lokal) menyentuh permukaan batang pada tinggi ~22 cm
+  p.position.set(26.5 + 41.7 * Math.cos(0.22), 22 + 41.7 * Math.sin(0.22), 6)
+  scene.add(p)
+  const sp = buildSoilProbe(new THREE.Vector3(38, 8, -6)); sp.position.set(40, 9, 12); shadowAll(sp); scene.add(sp)
+  // rumput
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * Math.PI * 2, r = 45 + Math.random() * 120
+    const g = new THREE.Mesh(new THREE.ConeGeometry(1.2, 6 + Math.random() * 6, 4), new THREE.MeshStandardMaterial({ color: 0x4f8a3a }))
+    g.position.set(Math.cos(a) * r, 3, Math.sin(a) * r); scene.add(g)
+  }
+  camera.position.set(150, 105, 200); camera.lookAt(18, 38, 0)
+  label('<b>Batang sawit</b><small>Ø ± 50 cm</small>', new THREE.Vector3(-40, 80, 45))
+  leader(new THREE.Vector3(28, 24, 6), new THREE.Vector3(20, 70, 40)); label('<b>Sungkup menempel rapat</b><small>10–30 cm dari tanah</small>', new THREE.Vector3(20, 70, 40))
+  leader(new THREE.Vector3(72, 34, 6), new THREE.Vector3(90, 70, 10)); label('<b>Bodi & layar</b><small>kode pohon + hasil AI</small>', new THREE.Vector3(90, 70, 10))
+  leader(new THREE.Vector3(40, 4, 12), new THREE.Vector3(70, 4, 50)); label('<b>Probe tanah</b><small>ditancap di piringan</small>', new THREE.Vector3(70, 4, 50))
+  leader(new THREE.Vector3(-4, 18, 30), new THREE.Vector3(-45, 45, 40)); label('<b>Tubuh buah Ganoderma</b><small>(gejala stadium lanjut)</small>', new THREE.Vector3(-45, 45, 40))
+}
+
+if (view === 'sungkup') {
+  T('Detail sungkup & alur udara', 'Udara pangkal batang → gasket → kisi → ruang sensor (3 sensor gas + SHT31) → kipas → keluar', '')
+  const w = buildWand(); shadowAll(w); w.position.set(-30, 0, 0)
+  w.traverse(m => { if (m.isMesh && m.name === 'sungkup') { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = 0.35 } })
+  w.getObjectByName('ruang_sensor').traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = 0.22 } })
+  scene.add(w); floor(-7.5); w.updateMatrixWorld(true)
+  const arrow = (from, to) => scene.add(new THREE.ArrowHelper(to.clone().sub(from).normalize(), from, from.distanceTo(to), 0xd84315, 1.4, 0.9))
+  arrow(new THREE.Vector3(14, 3.2, 0), new THREE.Vector3(5, 1.2, 0))
+  arrow(new THREE.Vector3(14, -3.2, 0), new THREE.Vector3(5, -1.2, 0))
+  arrow(new THREE.Vector3(2, 0, 0), new THREE.Vector3(-3.5, 0, 0))
+  arrow(new THREE.Vector3(-2.5, 2.8, 0), new THREE.Vector3(-2.5, 7, 0))
+  camera.position.set(-8, 26, 68); camera.lookAt(-8, -1, 0)
+  const Wp = n => { const v = new THREE.Vector3(); w.getObjectByName(n).getWorldPosition(v); return v }
+  const L = (html, at, off) => { const b = at.clone().add(off); leader(at, b); label(html, b) }
+  L('<b>Gasket karet</b><small>menutup celah kulit batang</small>', Wp('gasket').add(new THREE.Vector3(0, 7, 0)), new THREE.Vector3(4, 5, 0))
+  L('<b>Kisi pelindung</b>', new THREE.Vector3(-2.2, -2.4, 0), new THREE.Vector3(3, -6, 4))
+  L('<b>3 sensor gas + SHT31</b>', Wp('MQ-135'), new THREE.Vector3(-10, -8, 6))
+  L('<b>Kipas 5 V</b><small>aliran udara stabil</small>', Wp('kipas'), new THREE.Vector3(-2, -9, 10))
+  L('<b>Udara keluar</b>', new THREE.Vector3(-2.5, 7, 0), new THREE.Vector3(-8, 4, 0))
+  L('<b>Udara dari pangkal batang</b>', new THREE.Vector3(14, -3.2, 0), new THREE.Vector3(0, -8, 6))
+  L('<b>Tangkai & pegangan</b><small>kabel ke unit utama</small>', new THREE.Vector3(-20, 1.8, 0), new THREE.Vector3(-4, 9, -2))
+}
+
+renderer.render(scene, camera); css.render(scene, camera)
+window.__done = true
+</script></body></html>

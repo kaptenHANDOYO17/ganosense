@@ -1,0 +1,103 @@
+{
+  "tabel_banding": {
+    "GanoSense RF (multisensor+fitur)": {
+      "akurasi": 0.8666,
+      "macro_f1": 0.8508,
+      "recall_sehat": 0.9066,
+      "recall_awal": 0.7886,
+      "recall_sedang": 0.8679,
+      "recall_berat": 0.8491,
+      "sensitivitas_terinfeksi": 0.9392,
+      "spesifisitas": 0.9066
+    },
+    "Regresi logistik (multisensor)": {
+      "akurasi": 0.8578,
+      "macro_f1": 0.84,
+      "recall_sehat": 0.8996,
+      "recall_awal": 0.7978,
+      "recall_sedang": 0.8366,
+      "recall_berat": 0.8443,
+      "sensitivitas_terinfeksi": 0.9454,
+      "spesifisitas": 0.8996
+    },
+    "Ambang 1 sensor (tanpa AI)": {
+      "akurasi": 0.6909,
+      "macro_f1": 0.6435,
+      "recall_sehat": 0.8322,
+      "recall_awal": 0.6019,
+      "recall_sedang": 0.5071,
+      "recall_berat": 0.658,
+      "sensitivitas_terinfeksi": 0.9313,
+      "spesifisitas": 0.8322
+    },
+    "Sensus visual konvensional": {
+      "akurasi": 0.685,
+      "macro_f1": 0.5581,
+      "recall_sehat": 0.9213,
+      "recall_awal": 0.0,
+      "recall_sedang": 0.75,
+      "recall_berat": 0.8302,
+      "sensitivitas_terinfeksi": 0.6982,
+      "spesifisitas": 0.9213
+    }
+  },
+  "confusion_matrix": [
+    [
+      1291,
+      133,
+      0,
+      0
+    ],
+    [
+      107,
+      511,
+      30,
+      0
+    ],
+    [
+      1,
+      23,
+      611,
+      69
+    ],
+    [
+      0,
+      0,
+      64,
+      360
+    ]
+  ],
+  "meta": {
+    "sumber_data": "sintetis-berbasis-literatur (BUKAN data lapangan)",
+    "n_pengukuran": 3200,
+    "n_pohon": 400,
+    "cv": "GroupKFold 5 lipatan (per pohon)",
+    "cv_metrics": {
+      "akurasi": 0.8666,
+      "macro_f1": 0.8508,
+      "recall_sehat": 0.9066,
+      "recall_awal": 0.7886,
+      "recall_sedang": 0.8679,
+      "recall_berat": 0.8491,
+      "sensitivitas_terinfeksi": 0.9392,
+      "spesifisitas": 0.9066
+    },
+    "feature_importance": {
+      "visual_score": 0.2199,
+      "resp_mq135": 0.1993,
+      "slope_tgs2602": 0.1516,
+      "resp_tgs2602": 0.1126,
+      "slope_mq138": 0.0926,
+      "resp_mq138": 0.0759,
+      "ratio_138_135": 0.0348,
+      "umur_th": 0.0217,
+      "ratio_2602_135": 0.0176,
+      "generasi": 0.0168,
+      "d_rh": 0.0146,
+      "rh_pct": 0.0115,
+      "soil_moist": 0.0112,
+      "soil_temp": 0.01,
+      "temp_c": 0.0099
+    }
+  }
+}

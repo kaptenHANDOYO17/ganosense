@@ -1,0 +1,28 @@
+{
+  "name": "ganosense",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "description": "GanoSense – Sistem peringatan dini Ganoderma berbasis IoT, AI spasial & DSS untuk sawit rakyat",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsx tests/parity.test.ts && tsx tests/logic.test.ts && tsx tests/chatbot.test.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vercel/node": "^3.2.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  }
+}

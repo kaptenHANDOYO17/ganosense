@@ -1,0 +1,74 @@
+{
+ "param": {
+  "beta": 0.006499999999999999,
+  "n_pohon": 1440,
+  "luas_ha": 10.06993006993007,
+  "harga_tbs": 3800,
+  "tbs_t_ha": 15.0,
+  "reps": 30
+ },
+ "skenario": {
+  "A_konvensional": {
+   "inc_60": 0.23402777777777778,
+   "selisih_vs_A_rp_ha_th": 0.0,
+   "tindakan_per_ha_5th": 24.607916666666668
+  },
+  "B_ganosense_pesimis": {
+   "inc_60": 0.20486111111111108,
+   "selisih_vs_A_rp_ha_th": 595509.2592592656,
+   "tindakan_per_ha_5th": 22.393402777777776
+  },
+  "B_ganosense_dasar": {
+   "inc_60": 0.16495370370370369,
+   "selisih_vs_A_rp_ha_th": 1103251.2731481493,
+   "tindakan_per_ha_5th": 17.18648148148148
+  },
+  "B_ganosense_optimis": {
+   "inc_60": 0.14416666666666664,
+   "selisih_vs_A_rp_ha_th": 1346864.6990740835,
+   "tindakan_per_ha_5th": 14.604537037037037
+  }
+ },
+ "banding_model": {
+  "GanoSense RF (multisensor+fitur)": {
+   "akurasi": 0.8666,
+   "macro_f1": 0.8508,
+   "recall_sehat": 0.9066,
+   "recall_awal": 0.7886,
+   "recall_sedang": 0.8679,
+   "recall_berat": 0.8491,
+   "sensitivitas_terinfeksi": 0.9392,
+   "spesifisitas": 0.9066
+  },
+  "Regresi logistik (multisensor)": {
+   "akurasi": 0.8578,
+   "macro_f1": 0.84,
+   "recall_sehat": 0.8996,
+   "recall_awal": 0.7978,
+   "recall_sedang": 0.8366,
+   "recall_berat": 0.8443,
+   "sensitivitas_terinfeksi": 0.9454,
+   "spesifisitas": 0.8996
+  },
+  "Ambang 1 sensor (tanpa AI)": {
+   "akurasi": 0.6909,
+   "macro_f1": 0.6435,
+   "recall_sehat": 0.8322,
+   "recall_awal": 0.6019,
+   "recall_sedang": 0.5071,
+   "recall_berat": 0.658,
+   "sensitivitas_terinfeksi": 0.9313,
+   "spesifisitas": 0.8322
+  },
+  "Sensus visual konvensional": {
+   "akurasi": 0.685,
+   "macro_f1": 0.5581,
+   "recall_sehat": 0.9213,
+   "recall_awal": 0.0,
+   "recall_sedang": 0.75,
+   "recall_berat": 0.8302,
+   "sensitivitas_terinfeksi": 0.6982,
+   "spesifisitas": 0.9213
+  }
+ }
+}
